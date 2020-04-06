@@ -68,7 +68,7 @@ AntForest.antForest = function (isMainAccount, mainAccount) {
                 }
                 lastCurrentCollectFriendEnergy = currentCollectFriendEnergy
                 
-                enterFriendAvtivity(findTakePoint, isMainAccount)
+                enterFriendAvtivity(findTakePoint, isMainAccount, loopCount)
                 // 退出界面
                 exitFriendActivity()
                 loopCount++
@@ -80,6 +80,9 @@ AntForest.antForest = function (isMainAccount, mainAccount) {
     } while (findRecyclerViewAndScroll());
     console.log("列表已滑动到底部");
     Toast("列表已滑动到底部")
+    if (toastObserveThread) {
+        toastObserveThread.interrupt()
+    }
     SimpleUtils.closeActivity()
 }
 
@@ -265,6 +268,7 @@ function recordAndGetEnergy(isMainAccount) {
         console.log("work result: " + workResult);
     
         workThread.interrupt()
+        sleep(500)
     }
     collectEnergy(isMainAccount)
 }
@@ -273,6 +277,7 @@ function recordAndGetEnergy(isMainAccount) {
  * 获取Toast弹出的内容
  */
 function getToastText(funExec, sum) {
+    events.removeAllListeners()
     var thread = threads.start(function () {
         console.log("get toast text thread started")
 
@@ -282,7 +287,7 @@ function getToastText(funExec, sum) {
         });
 
         var result = funExec()
-        console.log("funExec result: " + result);
+        console.log("funExec result: " + result + " listener count: " + events.emitter().listenerCount("toast"));
 
         sum.setAndNotify(result);
     })
@@ -524,8 +529,12 @@ function findHelpTakeEnergy(img) {
 /**
  * 进入好友界面
  */
-function enterFriendAvtivity(point, isMainAccount) {
-    click(point.x + 20, point.y + 20)
+function enterFriendAvtivity(point, isMainAccount, loopCount) {
+    // click(device.width/2, 250)
+    sleep(2000)
+    var clickEnter = click(point.x + 20 + loopCount, point.y + 20 + loopCount)
+    console.log("enter friend result: " + clickEnter);
+    
     // 进入具体的好友界面
     currentUserName = textEndsWith("的蚂蚁森林").findOne().text()
     currentUserName = currentUserName.substring(0, currentUserName.length - 5)

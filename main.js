@@ -67,11 +67,11 @@ function openAlipay() {
  * do something
  */
 function actuallyDoSomething() {
-    text("运动").findOne().parent().click()
-    // 等待进入支付宝运动界面
-    sleep(4000)
-    SimpleUtils.closeActivity()
-    sleep(500)
+    // text("运动").findOne().parent().click()
+    // // 等待进入支付宝运动界面
+    // sleep(4000)
+    // SimpleUtils.closeActivity()
+    // sleep(500)
 
     if (currentTimeHour >= startWalkTime) {
         Sports.enterSports()
