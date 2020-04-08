@@ -23,7 +23,7 @@ SimpleUtils.showCustomConsole = function (positionY) {
 SimpleUtils.clickViewCenter = function (view) {
     if (view) {
         click(view.bounds().centerX(), view.bounds().centerY())
-    }else{
+    } else {
         console.log("click view center null");
     }
 }
@@ -47,8 +47,8 @@ function actualEnterActivity(view, nextActivityErrorText, callback) {
 function enterActivityCallback(nextActivityErrorText) {
     var errorView = text(nextActivityErrorText).findOne(2000)
     console.log(errorView.visiable());
-    
-    var result =  errorView== null
+
+    var result = errorView == null
     console.log("enterActivityCallback result: " + result);
     sleep(1000)
     return result
@@ -96,6 +96,24 @@ SimpleUtils.backActivity = function () {
     }
     console.log("key back");
     back()
+}
+
+/**
+ * 获取当前时间，小时
+ */
+SimpleUtils.getCurrentHourTime = function () {
+    date = new java.util.Date()
+    simpleDateFormat = new java.text.SimpleDateFormat("HH")
+    return simpleDateFormat.format(date)
+}
+
+/**
+ * 获取当前时间，日
+ */
+SimpleUtils.getCurrentDayTime = function () {
+    date = new java.util.Date()
+    simpleDateFormat = new java.text.SimpleDateFormat("dd")
+    return simpleDateFormat.format(date)
 }
 
 module.exports = SimpleUtils;

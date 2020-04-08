@@ -1,4 +1,5 @@
 var SimpleUtils = require('./SimpleUtils')
+var Consts = require('./consts')
 
 var AntForest = {}
 
@@ -26,9 +27,13 @@ var currentCollectFriendEnergy = 0
 var lastCurrentCollectFriendEnergy = -1
 // 当前是否是帮收
 var currentFindPointIsHelp = false
+// 本地存储
+var storage = null
 
 
-AntForest.antForest = function (isMainAccount, mainAccount) {
+AntForest.antForest = function (isMainAccount, mainAccount, date) {
+
+    storage = storages.create(Consts.STORAGE_NAME)
 
     mainAccountNickName = mainAccount
     if (isMainAccount) {
@@ -48,7 +53,15 @@ AntForest.antForest = function (isMainAccount, mainAccount) {
     recordAndGetEnergy(isMainAccount)
 
     if (!isMainAccount) {
-        wateringToMainAccount(mainAccount)
+        // wateringToMainAccount(mainAccount)
+        // 当今天没有记录时才会执行浇水
+        // if (storage.get(Consts.WATERING_DATE, null) != indexOf(date)) {
+        // handleToast(wateringToMainAccount, mainAccount)
+        // }
+        if (SimpleUtils.getCurrentHourTime() < 12) {
+            handleToast(wateringToMainAccount, mainAccount)
+        }
+        SimpleUtils.closeActivity()
         if (toastObserveThread) {
             toastObserveThread.interrupt()
         }
@@ -67,7 +80,7 @@ AntForest.antForest = function (isMainAccount, mainAccount) {
                     currentFindPointIsHelp = false
                 }
                 lastCurrentCollectFriendEnergy = currentCollectFriendEnergy
-                
+
                 enterFriendAvtivity(findTakePoint, isMainAccount, loopCount)
                 // 退出界面
                 exitFriendActivity()
@@ -122,8 +135,8 @@ function wateringToMainAccount(accountName) {
     console.log("sum energy: " + sumEnergy + " " + energy);
 
     var result = findWateringFriend(accountName)
-    console.log("find frient result length: " + result);
-    
+    console.log("find frient result length: " + result.length);
+
     if (result == null) {
         toast("并没有找到对应好友")
         return
@@ -139,7 +152,7 @@ function wateringToMainAccount(accountName) {
     while (count > 0) {
         if (findType == 0) {
             friend.click()
-        }else if (findType == 1) {
+        } else if (findType == 1) {
             SimpleUtils.clickViewCenter(friend)
         }
         sleep(1500)
@@ -178,8 +191,7 @@ function wateringToMainAccount(accountName) {
         count--
         sleep(1000)
     }
-
-    SimpleUtils.closeActivity()
+    return true
 }
 
 /**
@@ -245,38 +257,44 @@ function recordAndGetEnergy(isMainAccount) {
     sleep(500)
 
     if (isMainAccount) {
-        var toastThreadResult = threads.disposable();
-        var workThreadResult = threads.disposable()
-    
-        var workThread = threads.start(function () {
-            var getTextThread = null
-            if (currentUserName.equals(mainAccountNickName)) {
-                // if (isMainAccount) {
-                getTextThread = getToastText(collectWateringEnergyAndRecordTime, toastThreadResult)
-            } else if (!currentUserName.equals(mainAccountNickName)) {
-                getTextThread = getToastText(recordFriendsEnergyTime, toastThreadResult)
-            }
-            var result = toastThreadResult.blockedGet()
-            getTextThread.interrupt()
-            console.log("get toast text result: " + result);
-            workThreadResult.setAndNotify(result)
-        })
-    
-        workThread.waitFor()
-    
-        var workResult = workThreadResult.blockedGet()
-        console.log("work result: " + workResult);
-    
-        workThread.interrupt()
-        sleep(500)
+        if (currentUserName.equals(mainAccountNickName)) {
+            handleToast(collectWateringEnergyAndRecordTime)
+        } else if (!currentUserName.equals(mainAccountNickName)) {
+            handleToast(recordFriendsEnergyTime)
+        }
     }
     collectEnergy(isMainAccount)
+}
+
+function handleToast(funExec, value) {
+    console.log("handleToast");
+
+    var toastThreadResult = threads.disposable();
+    var workThreadResult = threads.disposable()
+
+    var workThread = threads.start(function () {
+        var getTextThread = getToastText(funExec, toastThreadResult, value)
+        var result = toastThreadResult.blockedGet()
+        getTextThread.interrupt()
+        console.log("get toast text result: " + result);
+        workThreadResult.setAndNotify(result)
+    })
+
+    workThread.waitFor()
+
+    var workResult = workThreadResult.blockedGet()
+    console.log("work result: " + workResult);
+
+    workThread.interrupt()
+    sleep(500)
 }
 
 /**
  * 获取Toast弹出的内容
  */
-function getToastText(funExec, sum) {
+function getToastText(funExec, sum, value) {
+    console.log("value is null: " + (value == null));
+
     events.removeAllListeners()
     var thread = threads.start(function () {
         console.log("get toast text thread started")
@@ -284,10 +302,20 @@ function getToastText(funExec, sum) {
         events.onToast(function (toast) {
             currentToastText = toast.getText()
             console.log("Toast内容: " + currentToastText + " " + threads.currentThread());
+            // if (currentToastText.indexOf("浇水成功") >= 0) {
+            //     storage.put(Consts.WATERING_DATE, SimpleUtils.getCurrentDayTime)
+            // } else if (currentToastText.indexOf("达到上限") >= 0) {
+
+            // }
         });
 
-        var result = funExec()
-        console.log("funExec result: " + result + " listener count: " + events.emitter().listenerCount("toast"));
+        var result = null
+        if (value != null) {
+            result = funExec(value)
+        } else {
+            result = funExec()
+        }
+        console.log("funExec result: " + result);
 
         sum.setAndNotify(result);
     })
@@ -397,7 +425,7 @@ function collectEnergy(isMainAccount) {
             if (checkButtonEnergy(element)) {
                 clickViewCenter(element)
                 sleep(1000)
-                if (isMainAccount) {
+                if (isMainAccount && !currentUserName.equals(mainAccountNickName)) {
                     var listView = className("ListView").findOne()
                     if (listView) {
                         var resultParentView = listView.child(1)
@@ -405,7 +433,7 @@ function collectEnergy(isMainAccount) {
                         var text = collectResultView.text()
                         currentCollectFriendEnergy = currentCollectFriendEnergy + parseInt(text.substring(2, text.length - 1))
                         console.log("collect friend energy: " + text + " sum: " + currentCollectFriendEnergy.toString());
-                        
+
                         sleep(1000)
                     }
                 }
@@ -534,13 +562,13 @@ function enterFriendAvtivity(point, isMainAccount, loopCount) {
     sleep(2000)
     var clickEnter = click(point.x + 20 + loopCount, point.y + 20 + loopCount)
     console.log("enter friend result: " + clickEnter);
-    
+
     // 进入具体的好友界面
     currentUserName = textEndsWith("的蚂蚁森林").findOne().text()
     currentUserName = currentUserName.substring(0, currentUserName.length - 5)
     console.log("进入了" + currentUserName + "的蚂蚁森林");
     sleep(2000)
-    
+
     // todo 给好友收能量并且记录时间
     recordAndGetEnergy(isMainAccount)
 }

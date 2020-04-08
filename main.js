@@ -16,15 +16,22 @@ var requestedCaptureScreen = false
 var mainAccount = "188"
 var mainAccountNickName = "Chosen.One"
 var currentTimeHour = -1
+var currentTimeDay = -1
 var isMainAccountResult = Consts.MAIN_ACCOUNT
 
-openAlipay()
+// openAlipay()
 
 SimpleUtils.showCustomConsole(1000)
 requestCaptureScreen()
 
 // 获取当前时间
-getCurrentHourTime()
+currentTimeHour = SimpleUtils.getCurrentHourTime()
+console.log("current time hour: " + currentTimeHour + "点");
+sleep(1000)
+
+currentTimeDay = SimpleUtils.getCurrentDayTime()
+console.log("current time day: " + currentTimeDay + "日");
+sleep(1000)
 
 // 先确定当前是否是主账号
 checkCurrentAccountIsMain()
@@ -76,18 +83,8 @@ function actuallyDoSomething() {
     if (currentTimeHour >= startWalkTime) {
         Sports.enterSports()
     }
-    AntForest.antForest(isMainAccountResult == Consts.MAIN_ACCOUNT, mainAccountNickName)
-    sleep(1000)
-}
-
-/**
- * 获取当前时间，小时
- */
-function getCurrentHourTime() {
-    date = new java.util.Date()
-    simpleDateFormat = new java.text.SimpleDateFormat("HH")
-    currentTimeHour = simpleDateFormat.format(date)
-    console.log("current time hour: " + currentTimeHour + "点");
+    sleep(2000)
+    AntForest.antForest(isMainAccountResult == Consts.MAIN_ACCOUNT || isMainAccountResult == Consts.MAIN_ACCOUNT_AND_CONTINUE, mainAccountNickName, currentTimeDay)
     sleep(1000)
 }
 

@@ -44,8 +44,12 @@ Utils.changeLoginUser = function changeLogin(mainAccount, mainAccountNickName) {
             if (userIndex == -1) {
                 SimpleUtils.clickViewCenter(userParent)
                 // 当为切换的最后一个账号是主账号则返回RUN_AGAIN
-                if (index == listChildCount - 1 && userName.indexOf(mainAccount) >= 0) {
-                    return Consts.MAIN_ACCOUNT_BUT_NEED_RUN_AGAIN
+                if (userName.indexOf(mainAccount) >= 0) {
+                    if (index == listChildCount-1) {
+                        return Consts.MAIN_ACCOUNT_BUT_NEED_RUN_AGAIN
+                    }else{
+                        return Consts.MAIN_ACCOUNT_AND_CONTINUE
+                    }
                 }
                 mainAccountView = null
                 return Consts.NOT_MAIN_ACCOUNT
