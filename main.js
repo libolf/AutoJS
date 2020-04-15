@@ -55,7 +55,7 @@ do {
 
 if (isMainAccountResult == Consts.ONLY_MAIN_ACCOUNT) {
     backToMainActivity()
-    console.log("当前只有主账号");
+    console.log("当前只有一个账号");
     toast("当前只有主账号")
 }
 
@@ -80,6 +80,7 @@ function actuallyDoSomething() {
     // SimpleUtils.closeActivity()
     // sleep(500)
 
+    sleep(2000)
     if (currentTimeHour >= startWalkTime) {
         Sports.enterSports()
     }

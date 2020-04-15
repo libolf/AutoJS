@@ -47,6 +47,7 @@ AntForest.antForest = function (isMainAccount, mainAccount, date) {
     sleep(5000)
 
     closeAntForestTips()
+    closeAntForestDialog()
 
     toastObserveThread = startToastObserveThread()
 
@@ -339,6 +340,7 @@ function recordFriendsEnergyTime() {
         let element = friendActivityLikeButtonList[index];
         if (checkButtonEnergy(element)) {
             SimpleUtils.clickViewCenter(element)
+            sleep(500)
         }
     }
 
@@ -631,12 +633,23 @@ function clickViewCenter(view) {
  * 关闭蚂蚁森林提示
  */
 function closeAntForestTips() {
-    var closeTipsButton = text("关闭").findOnce()
+    sleep(500)
+    var closeTipsButton = textContains("关闭").findOnce()
     if (closeTipsButton) {
         closeTipsButton.click()
     }
     console.log("准备点击其他地方消除树上的提示");
     click(device.width / 2, 200);
 }
+
+/**
+ * 关闭蚂蚁森林dialog提示
+ */
+function closeAntForestDialog() {
+    sleep(500)
+    var treedialog = idEndsWith("close").findOnce()
+    SimpleUtils.clickViewCenter(treedialog)
+}
+
 
 module.exports = AntForest;

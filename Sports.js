@@ -16,7 +16,16 @@ Sports.enterSports = function () {
 
     var goButton = findMyWayGoButton()
     if (goButton) {
-        SimpleUtils.clickViewCenter(goButton)
+        takeWalks(walkButton, goButton)
+    } else {
+        nextWalkLine()
+        goButton = findMyWayGoButton()
+        takeWalks(walkButton, goButton)
+    }
+}
+
+function takeWalks(walkButton, goButton) {
+    SimpleUtils.clickViewCenter(goButton)
         sleep(5000)
 
         SimpleUtils.closeActivity()
@@ -25,23 +34,31 @@ Sports.enterSports = function () {
         SimpleUtils.clickViewCenter(walkButton)
         sleep(3000)
 
-        var nextCity = text("下一关").findOnce()
-        // 当前路线走完后自动进入下一关
-        if (nextCity) {
-            SimpleUtils.clickViewCenter(nextCity)
-            var enterNextCity = textContains("进入路线").findOne()
-            if (enterNextCity) {
-                SimpleUtils.clickViewCenter(enterNextCity)
-                sleep(2000)
-                SimpleUtils.clickViewCenter(goButton)
-            }
-        }
-
         saveSportPrize()
+
+        nextWalkLine()
 
         SimpleUtils.closeActivity()
         sleep(1000)
         SimpleUtils.closeActivity()
+}
+
+function nextWalkLine() {
+    var nextCity = text("下一关").findOnce()
+    // 当前路线走完后自动进入下一关
+    if (nextCity) {
+        SimpleUtils.clickViewCenter(nextCity)
+        sleep(2000)
+        var enterNextCity = textContains("进入路线").findOne()
+        if (enterNextCity) {
+            SimpleUtils.clickViewCenter(enterNextCity)
+            sleep(2000)
+            var joinWalk = text("加入").findOnce()
+            if (joinWalk) {
+                SimpleUtils.clickViewCenter(joinWalk)
+                sleep(2000)
+            }
+        }
     }
 }
 
